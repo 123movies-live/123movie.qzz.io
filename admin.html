@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>123MOVIES - Admin Movie Importer Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --card-bg: #121212;
+            --accent-color: #2ecc71;
+            --accent-glow: rgba(46, 204, 113, 0.4);
+            --danger-color: #e74c3c;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(46, 204, 113, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(46, 204, 113, 0.03) 0%, transparent 40%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 5rem;
+        }
+
+        /* Top Header */
+        header {
+            background-color: #000;
+            padding: 1.5rem 3rem;
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            cursor: pointer;
+        }
+
+        .logo span {
+            color: var(--accent-color);
+        }
+
+        .play-icon {
+            background-color: var(--accent-color);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            padding-left: 2px;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .status-badge {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .status-badge.active {
+            background: rgba(46, 204, 113, 0.1);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.15);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: currentColor;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        /* Layout Grid */
+        .container {
+            max-width: 1400px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 3rem;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Left Side: Search & Configuration */
+        .panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #fff, #999);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.6rem;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.9rem 1.2rem;
+            color: white;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.15);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        /* Search Autocomplete Panel */
+        .search-results-panel {
+            position: absolute;
+            top: 105%;
+            left: 0;
+            width: 100%;
+            background: #111111;
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            max-height: 320px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+            display: none;
+        }
+
+        .search-results-panel.active {
+            display: block;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .result-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .result-item img {
+            width: 40px;
+            height: 55px;
+            object-fit: cover;
+            border-radius: 6px;
+            background-color: #222;
+        }
+
+        .result-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .result-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #fff;
+        }
+
+        .result-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* Right Side: Preview & Actions */
+        .preview-pane {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        /* Preview Card Box */
+        .preview-card-box {
+            background: #0d0d0d;
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-card-box.has-data {
+            border-style: solid;
+            border-color: var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+        }
+
+        .movie-card-preview {
+            width: 230px;
+            aspect-ratio: 2/3;
+            background-color: #1a1a1a;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .movie-card-preview:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-color);
+            box-shadow: 0 25px 45px rgba(46, 204, 113, 0.15);
+        }
+
+        .movie-card-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .movie-card-preview .info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 2rem 1.2rem 1.2rem;
+            background: linear-gradient(transparent, rgba(0,0,0,0.95));
+        }
+
+        .movie-card-preview .info h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .movie-card-preview .info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .preview-placeholder-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            text-align: center;
+            max-width: 280px;
+        }
+
+        /* Large Action Buttons */
+        .btn {
+            width: 100%;
+            padding: 1.2rem 2rem;
+            border-radius: 14px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-import-auto {
+            background: linear-gradient(135deg, var(--accent-color), #27ae60);
+            color: #000;
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.25);
+        }
+
+        .btn-import-auto:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(46, 204, 113, 0.4);
+            background: linear-gradient(135deg, #32e07d, #2ecc71);
+        }
+
+        .btn-import-auto:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            color: #666;
+            box-shadow: none;
+            cursor: not-allowed;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-download-html {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .btn-download-html:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .manual-section {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            margin-top: 1rem;
+        }
+
+        .manual-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .code-box {
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1.2rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            color: #39e980;
+            position: relative;
+            max-height: 180px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .btn-copy-code {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ccc;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-copy-code:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        /* Success & Status Notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #111;
+            border-left: 5px solid var(--accent-color);
+            border-radius: 10px;
+            padding: 1.2rem 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 10000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+        }
+
+        .toast-content h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .toast-content p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Setup Guides */
+        .setup-guide {
+            margin-top: 3rem;
+            background: rgba(46, 204, 113, 0.03);
+            border: 1px dashed rgba(46, 204, 113, 0.2);
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
+        }
+
+        .setup-guide h4 {
+            color: var(--accent-color);
+            font-weight: 800;
+            margin-bottom: 8px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .setup-guide p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .setup-guide code {
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Tab Navigation */
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 1.05rem;
+            font-weight: 800;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition);
+            border-radius: 12px;
+        }
+
+        .tab-btn.active {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.02);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Hacker Log Terminal Console */
+        .console-terminal {
+            background: #020202;
+            border: 1px solid rgba(46, 204, 113, 0.15);
+            border-radius: 16px;
+            padding: 1.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            color: #39e980;
+            max-height: 250px;
+            min-height: 180px;
+            overflow-y: auto;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(0,0,0,0.5);
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+
+        .console-line {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            border-left: 2px solid transparent;
+            padding-left: 8px;
+        }
+
+        .console-line.info { border-color: #3498db; color: #5dade2; }
+        .console-line.success { border-color: #2ecc71; color: #2ecc71; font-weight: bold; }
+        .console-line.error { border-color: #e74c3c; color: #ec7063; }
+        .console-line.warning { border-color: #f1c40f; color: #f4d03f; }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 100px;
+            overflow: hidden;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-color), #27ae60);
+            box-shadow: 0 0 10px var(--accent-glow);
+            transition: width 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo" onclick="window.location.href='index.html'">
+                123M <div class="play-icon">▶</div> VIES <span>Admin</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">← Back to Site</a>
+                <div id="backendStatus" class="status-badge">
+                    <div class="status-dot"></div>
+                    <span id="statusText">Checking Backend...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Configuration & Search Panel -->
+        <section class="panel">
+            <!-- Tabs Navigation -->
+            <div class="tab-navigation" style="display: flex; gap: 0.5rem; border-bottom: 1px solid var(--glass-border); margin-bottom: 2.2rem; padding-bottom: 0.8rem;">
+                <button class="tab-btn active" id="tabBtnSingle" onclick="switchTab('single')">🎬 Single Movie</button>
+                <button class="tab-btn" id="tabBtnBulk" onclick="switchTab('bulk')">⚡ Bulk Importer</button>
+                <button class="tab-btn" id="tabBtnSitemap" onclick="switchTab('sitemap')">🌐 SEO Sitemap</button>
+                <button class="tab-btn" id="tabBtnMeta" onclick="switchTab('meta')">🏷️ Meta Generator</button>
+            </div>
+
+            <!-- TAB 1: SINGLE IMPORTER -->
+            <div id="singleImporterTab" class="tab-content active">
+                <h2 class="panel-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    Search & Import Movies
+                </h2>
+
+                <div class="form-group" style="position: relative;">
+                    <label for="movieSearch">Search Movie Title (TMDB)</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="movieSearch" class="form-control" placeholder="Type a movie title (e.g., Inception, Interstellar)..." autocomplete="off">
+                        <div id="searchResults" class="search-results-panel"></div>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid rgba(255, 255, 255, 0.06); margin: 2rem 0; padding-top: 1rem;"></div>
+
+                <div class="form-group">
+                    <label for="movieTitle">Movie Title</label>
+                    <input type="text" id="movieTitle" class="form-control" placeholder="Movie Title (e.g., John Wick)">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label for="movieYear">Release Year</label>
+                        <input type="text" id="movieYear" class="form-control" placeholder="e.g., 2014">
+                    </div>
+                    <div class="form-group">
+                        <label for="movieID">TMDB ID</label>
+                        <input type="text" id="movieID" class="form-control" placeholder="e.g., 245891">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="movieSlug">URL File Slug</label>
+                    <input type="text" id="movieSlug" class="form-control" placeholder="e.g., john-wick (will generate john-wick.html)">
+                </div>
+
+                <div class="form-group">
+                    <label for="movieCategory">Category / Metadata</label>
+                    <input type="text" id="movieCategory" class="form-control" placeholder="e.g., Action - 2014">
+                </div>
+
+                <div class="form-group">
+                    <label for="movieOverview">Description / Overview</label>
+                    <textarea id="movieOverview" class="form-control" placeholder="Movie overview details..."></textarea>
+                </div>
+            </div>
+
+            <!-- TAB 2: BULK IMPORTER -->
+            <div id="bulkImporterTab" class="tab-content">
+                <h2 class="panel-title" style="color: #3498db;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3498db" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    ⚡ Auto-Bulk Movie Importer
+                </h2>
+
+                <div class="form-group">
+                    <label for="bulkSource">Bulk Import Source / Category</label>
+                    <select id="bulkSource" class="form-control">
+                        <option value="trending">🔥 Daily Trending Movies (All Genres)</option>
+                        <option value="popular" selected>🍿 Popular Movies (Current Hits)</option>
+                        <option value="top_rated">⭐ Top Rated Movies (All-Time Classics)</option>
+                        <option value="upcoming">📅 Upcoming Movies (Trailers & Previews)</option>
+                        <option value="28">🎬 Action Movies</option>
+                        <option value="12">🧭 Adventure Movies</option>
+                        <option value="16">🎨 Animation Movies</option>
+                        <option value="35">😂 Comedy Movies</option>
+                        <option value="80">🕵️ Crime Movies</option>
+                        <option value="18">🎭 Drama Movies</option>
+                        <option value="14">🦄 Fantasy Movies</option>
+                        <option value="27">👻 Horror Movies</option>
+                        <option value="878">🚀 Science Fiction Movies</option>
+                        <option value="53">⚡ Thriller Movies</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem;">
+                    <div class="form-group">
+                        <label for="bulkQuantity">Number of Movies to Import</label>
+                        <input type="number" id="bulkQuantity" class="form-control" value="10" min="1" max="1000" placeholder="Max 1000">
+                    </div>
+                    <div class="form-group">
+                        <label for="bulkDeployAfter">Deploy Live Immediately</label>
+                        <select id="bulkDeployAfter" class="form-control">
+                            <option value="yes" selected>Yes (Auto Deploy)</option>
+                            <option value="no">No (Local Only)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); margin: 1.5rem 0; padding-top: 1rem;"></div>
+
+                <div class="form-group" style="margin-bottom: 0.5rem;">
+                    <label for="bulkKeyword">Or Bulk Import Search Keyword Match</label>
+                    <input type="text" id="bulkKeyword" class="form-control" placeholder="Search and import matching results (e.g. Batman, Marvel)...">
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.4; text-align: left;">
+                    * Leave empty to import the standard category selected above. If a keyword is typed, it will search TMDB and bulk import matching hits instead.
+                </p>
+
+                <button id="btnBulkImport" class="btn btn-import-auto" style="margin-top: 1.5rem; background: linear-gradient(135deg, #3498db, #2980b9); box-shadow: 0 10px 30px rgba(52, 152, 219, 0.25); color: #fff;">
+                    ⚡ Start Auto-Bulk Import & Deploy
+                </button>
+
+                <!-- Hacker console container -->
+                <div class="progress-bar-container" id="bulkProgressBar">
+                    <div class="progress-bar-fill" id="bulkProgressBarFill"></div>
+                </div>
+                <div id="bulkTerminal" class="console-terminal" style="display: none;">
+                    <div class="console-line info">[*] Ready to initiate bulk operation...</div>
+                </div>
+            </div>
+
+            <!-- TAB 3: SITEMAP GENERATOR -->
+            <div id="sitemapTab" class="tab-content">
+                <h2 class="panel-title" style="color: #9b59b6;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    🌐 XML Sitemap Generator & Search Indexer
+                </h2>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="sitemapDomain">Target Website Base URL</label>
+                    <input type="text" id="sitemapDomain" class="form-control" value="https://123movie.free.nf" placeholder="e.g., https://yourwebsite.com">
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 5px; line-height: 1.4;">
+                        * Specify your live production URL (e.g. <code>https://yourdomain.com</code>) to generate proper canonical absolute paths inside the XML document.
+                    </p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="sitemapFrequency">Update Frequency</label>
+                        <select id="sitemapFrequency" class="form-control" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); outline: none;">
+                            <option value="daily">Daily</option>
+                            <option value="weekly" selected>Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="sitemapPriority">Default Page Priority</label>
+                        <select id="sitemapPriority" class="form-control" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); outline: none;">
+                            <option value="1.0">1.0 (Highest)</option>
+                            <option value="0.8" selected>0.8 (Standard Movies)</option>
+                            <option value="0.5">0.5 (Low)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="btnGenerateSitemap" class="btn btn-import-auto" style="margin-top: 1.5rem; background: linear-gradient(135deg, #9b59b6, #8e44ad); box-shadow: 0 10px 30px rgba(155, 89, 182, 0.25); color: #fff;">
+                    ⚡ Auto-Generate & Deploy Sitemap.xml
+                </button>
+
+                <div id="sitemapLinkContainer" class="setup-guide" style="border-color: #2ecc71; background: rgba(46, 204, 113, 0.03); margin-top: 1.5rem; display: none;">
+                    <h4 style="color: #2ecc71; margin-bottom: 5px;">🚀 Sitemap Deployed Successfully!</h4>
+                    <p>Your sitemap XML is now live at:</p>
+                    <p style="margin-top: 5px; font-weight: bold;">
+                        <a id="sitemapLiveLink" href="https://123movie.free.nf/sitemap.xml" target="_blank" style="color: #2ecc71; text-decoration: underline; font-size: 1.05rem;">https://123movie.free.nf/sitemap.xml</a>
+                    </p>
+                </div>
+
+                <div id="sitemapTerminal" class="console-terminal" style="display: none; margin-top: 1.5rem;">
+                    <div class="console-line info">[*] Ready to compile Sitemap XML...</div>
+                </div>
+            </div>
+
+            <!-- TAB 4: META TAG GENERATOR -->
+            <div id="metaTab" class="tab-content">
+                <h2 class="panel-title" style="color: #e67e22;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="2.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    🏷️ SEO Meta Tags & Keywords Bulk Generator
+                </h2>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="metaDescTemplate">Meta Description Template</label>
+                    <textarea id="metaDescTemplate" class="form-control" rows="3" style="width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); outline: none; font-family: inherit; font-size: 0.95rem; resize: vertical;">Watch {title} ({year}) full movie online in HD. Stream {title} now in high quality free of registration. {overview}</textarea>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 5px; line-height: 1.4;">
+                        * Supported Placeholders: <code>{title}</code> (Movie Name), <code>{year}</code> (Release Year), and <code>{overview}</code> (Movie Plot).
+                    </p>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="metaKeysTemplate">Meta Keywords Template</label>
+                    <input type="text" id="metaKeysTemplate" class="form-control" value="{title} {year}, watch {title} online, stream {title} free, HD movies, 123movies" placeholder="e.g., {title} {year}, watch {title} free">
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 5px; line-height: 1.4;">
+                        * Separate keywords with commas. Placeholders are fully supported!
+                    </p>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="metaDeployAfter">Auto-Deploy Changes</label>
+                    <select id="metaDeployAfter" class="form-control" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); outline: none;">
+                        <option value="yes">🚀 Yes, Auto-Deploy changed pages via FTP (Recommended)</option>
+                        <option value="no">💾 No, save locally only</option>
+                    </select>
+                </div>
+
+                <button id="btnGenerateMeta" class="btn btn-import-auto" style="margin-top: 1.5rem; background: linear-gradient(135deg, #e67e22, #d35400); box-shadow: 0 10px 30px rgba(230, 126, 34, 0.25); color: #fff;">
+                    ⚡ Bulk Generate & Apply Meta Tags to All Pages
+                </button>
+
+                <div class="progress-bar-container" id="metaProgressBar" style="display: none; margin-top: 1.5rem;">
+                    <div class="progress-bar-fill" id="metaProgressBarFill"></div>
+                </div>
+
+                <div id="metaTerminal" class="console-terminal" style="display: none; margin-top: 1.5rem;">
+                    <div class="console-line info">[*] Ready to initiate bulk SEO meta operation...</div>
+                </div>
+            </div>
+
+            <!-- SHARED OVERRIDES -->
+            <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); margin: 2rem 0; padding-top: 1.2rem;"></div>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="tmdbApiKey">TMDB API Key (Optional Override)</label>
+                <input type="text" id="tmdbApiKey" class="form-control" placeholder="Using default integrated key..." value="d4c4f18bb357c68018b409f7f00ab072">
+            </div>
+        </section>
+
+        <!-- Right Preview & Import Panel -->
+        <section class="preview-pane">
+            <div id="previewContainer" class="preview-card-box">
+                <div class="preview-placeholder-text">
+                    <p style="font-size: 2.5rem; margin-bottom: 1rem;">🎬</p>
+                    Search and select a movie from the left panel to display real-time site card preview.
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+                <!-- Auto Import (Active when python server is running) -->
+                <button id="btnImportDirect" class="btn btn-import-auto" disabled>
+                    ⚡ Import Directly to Site
+                </button>
+
+                <!-- Setup Guide Banner -->
+                <div id="setupGuide" class="setup-guide" style="border-color: #3498db; background: rgba(52, 152, 219, 0.03);">
+                    <h4 style="color: #3498db;">⚡ Direct Import Auto-Start</h4>
+                    <p>To enable direct 1-click importing and batch updates, the local companion helper must be active.</p>
+                    <p style="margin-top: 5px; font-weight: bold; color: #fff;">
+                        💡 Double-click <code style="color: #3498db; border-color: rgba(52, 152, 219, 0.2);">enable_startup.bat</code> in your project folder to register the importer to auto-start automatically in the background on system boot!
+                    </p>
+                </div>
+
+                <!-- Manual Import Fallback -->
+                <div class="manual-section">
+                    <h3 class="manual-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Manual Export Fallback
+                    </h3>
+                    
+                    <div class="form-group">
+                        <label>1. JavaScript Configuration Object (main.js)</label>
+                        <div class="code-box">
+                            <button class="btn-copy-code" id="btnCopyJs">Copy</button>
+                            <pre id="jsCodeSnippet">// Select a movie to generate configuration object</pre>
+                        </div>
+                    </div>
+
+                    <button id="btnDownloadHtml" class="btn btn-download-html" disabled>
+                        💾 Download Generated HTML File
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Success Toast Notification -->
+    <div id="successToast" class="toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-content">
+            <h4 id="toastTitle">Import Success!</h4>
+            <p id="toastMessage">Movie files generated successfully.</p>
+        </div>
+    </div>
+
+    <!-- Core Autocomplete Importer JS Script -->
+    <script>
+        const TMDB_DEFAULT_KEY = "d4c4f18bb357c68018b409f7f00ab072";
+        const BACKEND_URL = "http://localhost:3000";
+
+        // DOM elements
+        const searchInput = document.getElementById('movieSearch');
+        const searchResults = document.getElementById('searchResults');
+        const formTitle = document.getElementById('movieTitle');
+        const formYear = document.getElementById('movieYear');
+        const formID = document.getElementById('movieID');
+        const formSlug = document.getElementById('movieSlug');
+        const formCategory = document.getElementById('movieCategory');
+        const formOverview = document.getElementById('movieOverview');
+        const formApiKey = document.getElementById('tmdbApiKey');
+        
+        const previewContainer = document.getElementById('previewContainer');
+        const btnImportDirect = document.getElementById('btnImportDirect');
+        const btnDownloadHtml = document.getElementById('btnDownloadHtml');
+        const btnCopyJs = document.getElementById('btnCopyJs');
+        const jsCodeSnippet = document.getElementById('jsCodeSnippet');
+        const backendStatus = document.getElementById('backendStatus');
+        const statusText = document.getElementById('statusText');
+        const setupGuide = document.getElementById('setupGuide');
+
+        let selectedMovieData = null;
+        let isBackendOnline = false;
+
+        // 1. Check if backend Python server is online
+        const checkBackendStatus = async () => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1500);
+
+            try {
+                // Ping using OPTIONS with timeout signal
+                await fetch(BACKEND_URL + "/import", { 
+                    method: 'OPTIONS',
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
+                isBackendOnline = true;
+                backendStatus.className = "status-badge active";
+                statusText.innerText = "Backend Online";
+                setupGuide.style.display = "none";
+                if (selectedMovieData) {
+                    btnImportDirect.disabled = false;
+                }
+            } catch (err) {
+                clearTimeout(timeoutId);
+                isBackendOnline = false;
+                backendStatus.className = "status-badge";
+                statusText.innerText = "Backend Offline";
+                setupGuide.style.display = "block";
+                btnImportDirect.disabled = true;
+            } finally {
+                // Schedule next check 4 seconds after this one is fully complete
+                setTimeout(checkBackendStatus, 4000);
+            }
+        };
+
+        // Start initial status check
+        checkBackendStatus();
+
+        // 2. Real-time Search Handler
+        let debounceTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            const query = searchInput.value.trim();
+            if (!query) {
+                searchResults.innerHTML = '';
+                searchResults.classList.remove('active');
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                fetchTMDBMovies(query);
+            }, 300);
+        });
+
+        const fetchTMDBMovies = async (query) => {
+            const apiKey = formApiKey.value.trim() || TMDB_DEFAULT_KEY;
+            const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}&include_adult=false&language=en-US`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                renderSearchResults(data.results || []);
+            } catch (err) {
+                console.error("Failed to fetch search results from TMDB:", err);
+            }
+        };
+
+        const renderSearchResults = (movies) => {
+            searchResults.innerHTML = '';
+            
+            if (movies.length === 0) {
+                searchResults.innerHTML = `<div class="result-item" style="cursor:default;"><span class="result-title">No movies found on TMDB</span></div>`;
+                searchResults.classList.add('active');
+                return;
+            }
+
+            movies.slice(0, 5).forEach(movie => {
+                const item = document.createElement('div');
+                item.className = 'result-item';
+                const poster = movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : 'assets/cover-placeholder.jpg';
+                const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+                
+                item.innerHTML = `
+                    <img src="${poster}" alt="${movie.title}">
+                    <div class="result-info">
+                        <span class="result-title">${movie.title}</span>
+                        <span class="result-meta">Movie • ${year}</span>
+                    </div>
+                `;
+
+                item.addEventListener('click', () => {
+                    selectMovie(movie);
+                });
+                searchResults.appendChild(item);
+            });
+            searchResults.classList.add('active');
+        };
+
+        // 3. Fetch Full Details of Selected Movie
+        const selectMovie = async (movie) => {
+            searchResults.classList.remove('active');
+            searchInput.value = '';
+
+            const apiKey = formApiKey.value.trim() || TMDB_DEFAULT_KEY;
+            const detailUrl = `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${apiKey}&language=en-US`;
+
+            try {
+                const response = await fetch(detailUrl);
+                const details = await response.json();
+                
+                populateForm(details);
+            } catch (err) {
+                console.error("Failed to fetch full movie details:", err);
+                // Fallback to search list item data
+                populateForm(movie);
+            }
+        };
+
+        // 4. Fill form and trigger visual preview
+        const populateForm = (movie) => {
+            if (!movie) return;
+            selectedMovieData = movie;
+            
+            const releaseDate = movie.release_date || "";
+            const year = (releaseDate && typeof releaseDate === 'string') 
+                ? releaseDate.split('-')[0] 
+                : new Date().getFullYear();
+            
+            // Format Categories: Action, Drama etc
+            let categories = 'Movie';
+            if (movie.genres && movie.genres.length > 0) {
+                categories = movie.genres.map(g => g.name).slice(0, 3).join(' - ');
+            }
+            
+            const title = movie.title || movie.original_title || "Untitled Movie";
+            
+            // Generate clean URL slug (e.g. John Wick: Chapter 4 -> john-wick-chapter-4)
+            const slug = title.toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-');
+
+            formTitle.value = title;
+            formYear.value = year;
+            formID.value = movie.id || "";
+            formSlug.value = slug;
+            formCategory.value = `${categories} - ${year}`;
+            formOverview.value = movie.overview || "Watch full movie in HD quality online. Stream now without any registration.";
+
+            updatePreviewAndSnippet();
+        };
+
+        // Live Preview Sync
+        const updatePreviewAndSnippet = () => {
+            const title = formTitle.value.trim();
+            const year = formYear.value.trim();
+            const category = formCategory.value.trim();
+            const slug = formSlug.value.trim();
+            
+            if (!title) return;
+
+            const posterUrl = selectedMovieData && selectedMovieData.poster_path 
+                ? `https://image.tmdb.org/t/p/w342${selectedMovieData.poster_path}` 
+                : 'assets/cover-placeholder.jpg';
+
+            // 1. Render Preview Card
+            previewContainer.className = "preview-card-box has-data";
+            previewContainer.innerHTML = `
+                <div class="movie-card-preview">
+                    <img src="${posterUrl}" alt="${title}">
+                    <div class="info">
+                        <h3>${title}</h3>
+                        <p>${category}</p>
+                    </div>
+                </div>
+            `;
+
+            // 2. Generate and display main.js database element
+            const dbSnippet = `{\n    title: "${title}",\n    url: "${slug}.html",\n    image: "assets/${slug}.jpg",\n    category: "${category}"\n}`;
+            jsCodeSnippet.innerText = dbSnippet;
+
+            // Enable Actions
+            btnDownloadHtml.disabled = false;
+            if (isBackendOnline) {
+                btnImportDirect.disabled = false;
+            }
+        };
+
+        // Listen for user overrides inside inputs
+        [formTitle, formYear, formCategory, formSlug, formOverview].forEach(el => {
+            el.addEventListener('input', updatePreviewAndSnippet);
+        });
+
+        // 5. Actions: Direct Automatic Import
+        btnImportDirect.addEventListener('click', async () => {
+            if (!selectedMovieData) return;
+
+            const payload = {
+                title: formTitle.value.trim(),
+                year: formYear.value.trim(),
+                overview: formOverview.value.trim(),
+                tmdb_id: formID.value.trim(),
+                poster_path: selectedMovieData.poster_path,
+                category: formCategory.value.trim(),
+                slug: formSlug.value.trim()
+            };
+
+            btnImportDirect.disabled = true;
+            btnImportDirect.innerText = "⏳ Importing Files...";
+
+            try {
+                const response = await fetch(BACKEND_URL + "/import", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast("Import Success!", `'${payload.title}' was added! HTML generated and main.js updated.`);
+                } else {
+                    alert("Import Failed: " + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Could not communicate with Python importer backend. Is 'python import_helper.py' running?");
+            } finally {
+                btnImportDirect.disabled = false;
+                btnImportDirect.innerText = "⚡ Import Directly to Site";
+            }
+        });
+
+        // 6. Actions: Manual Download Generator
+        btnDownloadHtml.addEventListener('click', () => {
+            const title = formTitle.value.trim();
+            const year = formYear.value.trim();
+            const overview = formOverview.value.trim();
+            const tmdbId = formID.value.trim();
+            const slug = formSlug.value.trim();
+
+            // Simple HTML page template generator for direct browser downloads
+            const htmlTemplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch ${title} (${year}) Full Movie Online Free - 123MOVIES</title>
+    <meta name="description" content="Watch ${title} (${year}) full movie online in HD. ${overview}">
+    <meta name="keywords" content="${title} ${year}, watch ${title} online, movie streaming, free movies, 123movies">
+    <link rel="canonical" href="${slug}.html">
+    <link rel="stylesheet" href="style.css?v=2.3">
+    <style>
+        #adblockOverlay {
+            position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important;
+            background: rgba(5, 5, 5, 0.95) !important; backdrop-filter: blur(25px) saturate(180%) !important; z-index: 9999999 !important;
+            display: none; align-items: center; justify-content: center; opacity: 0; transition: all 0.6s ease;
+        }
+        #adblockOverlay.active { display: flex !important; opacity: 1 !important; }
+        .premium-popup {
+            background: rgba(20, 20, 20, 0.7) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 40px !important;
+            padding: 4rem 3rem !important; max-width: 550px !important; width: 90% !important; text-align: center !important;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 40px rgba(46, 204, 113, 0.1) !important; position: relative; overflow: hidden;
+        }
+        .block-icon-container { width: 100px; height: 100px; background: linear-gradient(135deg, #2ecc71, #27ae60); border-radius: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2.5rem; font-size: 3.5rem; }
+        .premium-popup h2 { font-size: 2.8rem !important; font-weight: 900 !important; margin-bottom: 1.5rem !important; background: linear-gradient(to bottom, #fff, #aaa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .premium-popup p { color: #a0a0a0 !important; font-size: 1.2rem !important; line-height: 1.8 !important; margin-bottom: 3rem !important; }
+        .btn-modern-refresh { background: #fff !important; color: #000 !important; border: none !important; padding: 1.2rem 3.5rem !important; border-radius: 100px !important; font-size: 1.1rem !important; font-weight: 900 !important; cursor: pointer !important; text-transform: uppercase !important; box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2) !important; }
+        .btn-modern-refresh:hover { background: #2ecc71 !important; }
+        .content-blur-premium { filter: blur(20px) brightness(0.3) !important; pointer-events: none !important; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <script src="https://pl29338826.profitablecpmratenetwork.com/f6/4a/08/f64a08392f3fe1330ea21ff2b3933c5f.js"><\/script>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo" onclick="window.location.href='index.html'" style="cursor: pointer;">123M <div class="play-icon">▶</div> VIES</div>
+        </div>
+    </header>
+    <main class="container">
+        <div class="player-layout">
+            <aside class="ad-sidebar">
+                <div class="ad-container">
+                    <script type="text/javascript">atOptions = { 'key' : 'b4d27efced0c20f7927b385e9171b458', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };<\/script>
+                    <script type="text/javascript" src="https://www.highperformanceformat.com/b4d27efced0c20f7927b385e9171b458/invoke.js"><\/script>
+                </div>
+            </aside>
+            <section class="main-player-section">
+                <div class="ad-container-horizontal">
+                    <script type="text/javascript">atOptions = { 'key' : '0f1d8f34ec4871afaca3d58f406adb98', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };<\/script>
+                    <script type="text/javascript" src="https://www.highperformanceformat.com/0f1d8f34ec4871afaca3d58f406adb98/invoke.js"><\/script>
+                </div>
+                <div class="video-container">
+                    <iframe id="videoPlayer" src="https://vidcore.net/movie/${tmdbId}?autoPlay=true&sub=en" allowfullscreen></iframe>
+                </div>
+                <div class="server-switcher" style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;">
+                    <button class="server-btn active" onclick="switchServer('https://vidcore.net/movie/${tmdbId}?autoPlay=true&sub=en', this)">VidCore</button>
+                    <button class="server-btn" onclick="switchServer('https://vidfast.pro/movie/${tmdbId}?autoPlay=true&sub=en', this)">VidFast</button>
+                    <button class="server-btn" onclick="switchServer('https://player.videasy.net/movie/${tmdbId}?autoPlay=true&sub=en', this)">VidEasy</button>
+                    <button class="server-btn" onclick="switchServer('https://vidlink.pro/movie/${tmdbId}?autoPlay=true&sub=en', this)">VidLink</button>
+                    <button class="server-btn" onclick="switchServer('https://vidsrc.stream/movie/${tmdbId}?autoPlay=true&sub=en', this)">Vidsrc0</button>
+                    <button class="server-btn" onclick="switchServer('https://multiembed.mov/?video_id=${tmdbId}&tmdb=1', this)">MultiEmbed</button>
+                    <button class="server-btn" onclick="switchServer('https://www.2embed.cc/embed/${tmdbId}', this)">2Embed</button>
+                </div>
+                <script>
+                    function switchServer(url, btn) {
+                        document.getElementById('videoPlayer').src = url;
+                        document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    }
+                <\/script>
+                <div class="movie-details">
+                    <h1 style="color: #2ecc71; margin-bottom: 1.5rem;">${title} (${year})</h1>
+                    <div class="movie-description"><p>${overview}</p></div>
+                </div>
+            </section>
+        </div>
+    </main>
+    <div class="ad-zone-bait adsbox ad-placement ad-unit ad-zone"></div>
+    <div id="adblockOverlay">
+        <div class="premium-popup">
+            <div class="block-icon-container">🚫</div>
+            <h2>AdBlock Detected!</h2>
+            <p>Please disable your adblocker to continue. We use a few ads to keep our movie library free for everyone.</p>
+            <button class="btn-modern-refresh" id="refreshBtn">I've disabled it, Refresh</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const detect = () => {
+                const bait = document.querySelector('.ad-zone-bait');
+                const overlay = document.getElementById('adblockOverlay');
+                const main = document.querySelector('.container') || document.querySelector('.player-layout');
+                if (bait && overlay) {
+                    const isBlocked = window.getComputedStyle(bait).display === 'none' || bait.offsetHeight === 0;
+                    if (isBlocked) {
+                        overlay.classList.add('active');
+                        if (main) main.classList.add('content-blur-premium');
+                        document.body.style.overflow = 'hidden';
+                    }
+                }
+            };
+            setTimeout(detect, 600);
+            setTimeout(detect, 2000);
+            document.getElementById('refreshBtn').addEventListener('click', () => window.location.reload());
+        });
+    <\/script>
+    <script src="main.js?v=2.3"><\/script>
+</body>
+</html>`;
+
+            // Download file
+            const blob = new Blob([htmlTemplate], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${slug}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("Downloaded!", "Save this HTML file to your root project folder.");
+        });
+
+        // 7. Actions: Copy Configuration
+        btnCopyJs.addEventListener('click', () => {
+            const text = jsCodeSnippet.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const oldText = btnCopyJs.innerText;
+                btnCopyJs.innerText = "Copied!";
+                btnCopyJs.style.background = "#fff";
+                btnCopyJs.style.color = "#000";
+                setTimeout(() => {
+                    btnCopyJs.innerText = oldText;
+                    btnCopyJs.style.background = "";
+                    btnCopyJs.style.color = "";
+                }, 2000);
+            });
+        });
+
+        // 8. Toast Helper
+        const showToast = (title, message) => {
+            const toast = document.getElementById('successToast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = message;
+            
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        };
+
+        // Tab Switcher Logic
+        const switchTab = (tab) => {
+            const singleTab = document.getElementById('singleImporterTab');
+            const bulkTab = document.getElementById('bulkImporterTab');
+            const sitemapTab = document.getElementById('sitemapTab');
+            const metaTab = document.getElementById('metaTab');
+            const btnSingle = document.getElementById('tabBtnSingle');
+            const btnBulk = document.getElementById('tabBtnBulk');
+            const btnSitemap = document.getElementById('tabBtnSitemap');
+            const btnMeta = document.getElementById('tabBtnMeta');
+            
+            // Hide all tabs
+            singleTab.classList.remove('active');
+            bulkTab.classList.remove('active');
+            sitemapTab.classList.remove('active');
+            metaTab.classList.remove('active');
+            btnSingle.classList.remove('active');
+            btnBulk.classList.remove('active');
+            btnSitemap.classList.remove('active');
+            btnMeta.classList.remove('active');
+            
+            if (tab === 'single') {
+                singleTab.classList.add('active');
+                btnSingle.classList.add('active');
+            } else if (tab === 'bulk') {
+                bulkTab.classList.add('active');
+                btnBulk.classList.add('active');
+            } else if (tab === 'sitemap') {
+                sitemapTab.classList.add('active');
+                btnSitemap.classList.add('active');
+            } else if (tab === 'meta') {
+                metaTab.classList.add('active');
+                btnMeta.classList.add('active');
+            }
+        };
+
+        // Static TMDB Genre Mapping to human-readable genres
+        const GENRE_MAP = {
+            28: "Action",
+            12: "Adventure",
+            16: "Animation",
+            35: "Comedy",
+            80: "Crime",
+            99: "Documentary",
+            18: "Drama",
+            10751: "Family",
+            14: "Fantasy",
+            36: "History",
+            27: "Horror",
+            10402: "Music",
+            9648: "Mystery",
+            10749: "Romance",
+            878: "Science Fiction",
+            10770: "TV Movie",
+            53: "Thriller",
+            10752: "War",
+            37: "Western"
+        };
+
+        // Bulk Importer JS Action
+        const btnBulkImport = document.getElementById('btnBulkImport');
+        const bulkTerminal = document.getElementById('bulkTerminal');
+        const bulkProgressBar = document.getElementById('bulkProgressBar');
+        const bulkProgressBarFill = document.getElementById('bulkProgressBarFill');
+        const bulkSource = document.getElementById('bulkSource');
+        const bulkQuantity = document.getElementById('bulkQuantity');
+        const bulkDeployAfter = document.getElementById('bulkDeployAfter');
+        const bulkKeyword = document.getElementById('bulkKeyword');
+
+        const writeToConsole = (text, type = '') => {
+            const line = document.createElement('div');
+            line.className = `console-line ${type}`;
+            line.innerText = text;
+            bulkTerminal.appendChild(line);
+            bulkTerminal.scrollTop = bulkTerminal.scrollHeight;
+        };
+
+        btnBulkImport.addEventListener('click', async () => {
+            if (!isBackendOnline) {
+                alert("Cannot start bulk import. Local Importer Backend is offline! Run 'python import_helper.py'.");
+                return;
+            }
+
+            const source = bulkSource.value;
+            const quantity = parseInt(bulkQuantity.value, 10) || 10;
+            const keyword = bulkKeyword.value.trim();
+            const apiKey = formApiKey.value.trim() || TMDB_DEFAULT_KEY;
+
+            // Lock UI and configure progress elements
+            btnBulkImport.disabled = true;
+            btnBulkImport.innerText = "⏳ Running Bulk Import...";
+            bulkTerminal.style.display = 'block';
+            bulkTerminal.innerHTML = '';
+            bulkProgressBar.style.display = 'block';
+            bulkProgressBarFill.style.width = '0%';
+            
+            writeToConsole("[*] INITIATING AUTO-BULK IMPORTER SYSTEM", 'info');
+            writeToConsole(`[*] Connecting to TMDB API... Key verified.`, 'info');
+
+            let movies = [];
+            
+            try {
+                let listUrl = "";
+                if (keyword) {
+                    writeToConsole(`[*] Preparing search query: "${keyword}"...`, 'info');
+                    listUrl = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(keyword)}&include_adult=false&language=en-US`;
+                } else {
+                    writeToConsole(`[*] Loading source list category...`, 'info');
+                    if (source === "trending") {
+                        listUrl = `https://api.themoviedb.org/3/trending/movie/day?api_key=${apiKey}`;
+                    } else if (source === "popular") {
+                        listUrl = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=en-US`;
+                    } else if (source === "top_rated") {
+                        listUrl = `https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&language=en-US`;
+                    } else if (source === "upcoming") {
+                        listUrl = `https://api.themoviedb.org/3/movie/upcoming?api_key=${apiKey}&language=en-US`;
+                    } else {
+                        // Genre discovery
+                        listUrl = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&language=en-US&sort_by=popularity.desc&include_adult=false&with_genres=${source}`;
+                    }
+                }
+
+                // Unified Pagination Loop to retrieve up to N movies (20 per page)
+                let page = 1;
+                const maxPagesNeeded = Math.ceil(quantity / 20);
+                writeToConsole(`[*] Fetching pages from TMDB to retrieve ${quantity} movies (20/page)...`, 'info');
+
+                while (movies.length < quantity && page <= maxPagesNeeded) {
+                    const pageUrl = listUrl.includes('?') ? `${listUrl}&page=${page}` : `${listUrl}?page=${page}`;
+                    try {
+                        const response = await fetch(pageUrl);
+                        const data = await response.json();
+                        if (data.results && data.results.length > 0) {
+                            movies = movies.concat(data.results);
+                            writeToConsole(`[*] Loaded page ${page}/${maxPagesNeeded} (${data.results.length} movies)...`, 'info');
+                        } else {
+                            break;
+                        }
+                        if (page >= data.total_pages) {
+                            break;
+                        }
+                        page++;
+                    } catch (fetchErr) {
+                        writeToConsole(`[!] Warning: Failed to fetch page ${page} from TMDB.`, 'warning');
+                        break;
+                    }
+                }
+
+                writeToConsole(`[*] TMDB Query Complete. Loaded: ${movies.length} items.`, 'success');
+
+                // Slice down to requested quantity
+                movies = movies.slice(0, quantity);
+                if (movies.length === 0) {
+                    writeToConsole("[!] ERROR: No movies found matching the criteria. Aborting.", 'error');
+                    btnBulkImport.disabled = false;
+                    btnBulkImport.innerText = "⚡ Start Auto-Bulk Import & Deploy";
+                    return;
+                }
+
+                writeToConsole(`[*] Processing bulk list... Sequential queue contains ${movies.length} items.`, 'info');
+
+                let successCount = 0;
+                let failCount = 0;
+
+                for (let i = 0; i < movies.length; i++) {
+                    const m = movies[i];
+                    const num = i + 1;
+                    writeToConsole(`[${num}/${movies.length}] Processing "${m.title}"...`, 'info');
+
+                    const releaseDate = m.release_date || "";
+                    const year = (releaseDate && typeof releaseDate === 'string') 
+                        ? releaseDate.split('-')[0] 
+                        : new Date().getFullYear();
+
+                    // Generate clean URL slug
+                    const slug = m.title.toLowerCase()
+                        .replace(/[^a-z0-9\s-]/g, '')
+                        .replace(/\s+/g, '-')
+                        .replace(/-+/g, '-');
+
+                    // Genre Mapping
+                    let genreNames = [];
+                    if (m.genre_ids && m.genre_ids.length > 0) {
+                        genreNames = m.genre_ids.map(id => GENRE_MAP[id]).filter(Boolean);
+                    }
+                    const categories = genreNames.slice(0, 3).join(' - ') || 'Movie';
+                    const category = `${categories} - ${year}`;
+
+                    // Send POST request
+                    const payload = {
+                        title: m.title,
+                        year: year,
+                        overview: m.overview || "Watch full movie in HD quality online. Stream now without any registration.",
+                        tmdb_id: m.id.toString(),
+                        poster_path: m.poster_path,
+                        category: category,
+                        slug: slug
+                    };
+
+                    try {
+                        const response = await fetch(BACKEND_URL + "/import", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const resData = await response.json();
+                        if (resData.success) {
+                            successCount++;
+                            writeToConsole(`[✓] SUCCESS: "${m.title}" added! (Slug: ${slug})`, 'success');
+                        } else {
+                            failCount++;
+                            writeToConsole(`[!] FAILED: "${m.title}" -> ${resData.error}`, 'error');
+                        }
+                    } catch (importErr) {
+                        failCount++;
+                        writeToConsole(`[!] CONNECTION ERROR: Failed to POST "${m.title}".`, 'error');
+                    }
+
+                    // Update progress bar
+                    const pct = Math.round((num / movies.length) * 100);
+                    bulkProgressBarFill.style.width = `${pct}%`;
+                }
+
+                writeToConsole(`\n=============================================`, 'info');
+                writeToConsole(`[*] BULK OPERATION SUMMARY:`, 'success');
+                writeToConsole(`    - Total Attempted: ${movies.length}`, 'info');
+                writeToConsole(`    - Successfully Injected: ${successCount}`, 'success');
+                writeToConsole(`    - Failed / Skipped: ${failCount}`, failCount > 0 ? 'error' : 'info');
+                writeToConsole(`=============================================\n`, 'info');
+
+                if (successCount > 0) {
+                    if (bulkDeployAfter.value === "yes") {
+                        writeToConsole("[*] Auto-Deployment triggered in the background thread.", 'warning');
+                        writeToConsole("[*] Debouncer delay in progress (waiting 3s)...", 'warning');
+                        writeToConsole("[*] Safe FTP upload scheduled. Check your terminal execution logs for live tracking.", 'success');
+                        showToast("Batch Imported!", `Injected ${successCount} movies! Deploy running in background.`);
+                    } else {
+                        writeToConsole("[*] Skip deployment active. Files written locally but NOT deployed.", 'warning');
+                        showToast("Local Batch Complete!", `Imported ${successCount} movies locally.`);
+                    }
+                } else {
+                    writeToConsole("[!] Batch complete, but zero movies were successfully added.", 'error');
+                }
+
+            } catch (err) {
+                console.error(err);
+                writeToConsole(`[!] FATAL ERROR DURING BULK OPERATION: ${err.message}`, 'error');
+            } finally {
+                btnBulkImport.disabled = false;
+                btnBulkImport.innerText = "⚡ Start Auto-Bulk Import & Deploy";
+            }
+        });
+
+        // Sitemap Generator JS Action
+        const btnGenerateSitemap = document.getElementById('btnGenerateSitemap');
+        const sitemapDomain = document.getElementById('sitemapDomain');
+        const sitemapFrequency = document.getElementById('sitemapFrequency');
+        const sitemapPriority = document.getElementById('sitemapPriority');
+        const sitemapLinkContainer = document.getElementById('sitemapLinkContainer');
+        const sitemapLiveLink = document.getElementById('sitemapLiveLink');
+        const sitemapTerminal = document.getElementById('sitemapTerminal');
+
+        const writeToSitemapConsole = (text, type = '') => {
+            const line = document.createElement('div');
+            line.className = `console-line ${type}`;
+            line.innerText = text;
+            sitemapTerminal.appendChild(line);
+            sitemapTerminal.scrollTop = sitemapTerminal.scrollHeight;
+        };
+
+        btnGenerateSitemap.addEventListener('click', async () => {
+            if (!isBackendOnline) {
+                alert("Cannot generate sitemap. Local Importer Backend is offline! Run 'python import_helper.py'.");
+                return;
+            }
+
+            const domain = sitemapDomain.value.trim();
+            const frequency = sitemapFrequency.value;
+            const priority = sitemapPriority.value;
+
+            if (!domain) {
+                alert("Please enter a valid website domain URL (e.g. https://123movie.free.nf).");
+                return;
+            }
+
+            btnGenerateSitemap.disabled = true;
+            btnGenerateSitemap.innerText = "⏳ Generating Sitemap XML...";
+            sitemapTerminal.style.display = 'block';
+            sitemapLinkContainer.style.display = 'none';
+            sitemapTerminal.innerHTML = ''; // Clear console
+
+            writeToSitemapConsole(`[*] Initializing Sitemap compilation for domain: ${domain}...`, 'info');
+            writeToSitemapConsole(`[*] Reading main.js database structure...`, 'info');
+
+            try {
+                writeToSitemapConsole(`[*] Sending generation parameters to Backend server...`, 'info');
+                const response = await fetch(BACKEND_URL + "/sitemap", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        domain: domain,
+                        frequency: frequency,
+                        priority: priority
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    writeToSitemapConsole(`[✓] Sitemap compiled successfully with ${result.urls_count} absolute URLs!`, 'success');
+                    writeToSitemapConsole(`[✓] Local file written to: ${result.filename}`, 'success');
+                    writeToSitemapConsole(`[*] Queueing sitemap.xml for automatic FTP deployment...`, 'info');
+                    writeToSitemapConsole(`[✓] Live link loaded! Click the link below to open the XML document in your browser.`, 'success');
+                    
+                    // Show sitemap links
+                    sitemapLiveLink.href = `${domain}/sitemap.xml`;
+                    sitemapLiveLink.textContent = `${domain}/sitemap.xml`;
+                    sitemapLinkContainer.style.display = 'block';
+                    
+                    showToast("Sitemap Success!", `Compiled sitemap.xml with ${result.urls_count} pages!`);
+                } else {
+                    writeToSitemapConsole(`[!] Error: ${result.error}`, 'error');
+                    alert(`Failed to compile sitemap: ${result.error}`);
+                }
+            } catch (err) {
+                writeToSitemapConsole(`[!] Connection error: ${err.message}`, 'error');
+                console.error(err);
+            } finally {
+                btnGenerateSitemap.disabled = false;
+                btnGenerateSitemap.innerText = "⚡ Auto-Generate & Deploy Sitemap.xml";
+            }
+        });
+
+        // Meta Generator JS Action
+        const btnGenerateMeta = document.getElementById('btnGenerateMeta');
+        const metaDescTemplate = document.getElementById('metaDescTemplate');
+        const metaKeysTemplate = document.getElementById('metaKeysTemplate');
+        const metaDeployAfter = document.getElementById('metaDeployAfter');
+        const metaProgressBar = document.getElementById('metaProgressBar');
+        const metaProgressBarFill = document.getElementById('metaProgressBarFill');
+        const metaTerminal = document.getElementById('metaTerminal');
+
+        const writeToMetaConsole = (text, type = '') => {
+            const line = document.createElement('div');
+            line.className = `console-line ${type}`;
+            line.innerText = text;
+            metaTerminal.appendChild(line);
+            metaTerminal.scrollTop = metaTerminal.scrollHeight;
+        };
+
+        btnGenerateMeta.addEventListener('click', async () => {
+            if (!isBackendOnline) {
+                alert("Cannot generate meta tags. Local Importer Backend is offline! Run 'python import_helper.py'.");
+                return;
+            }
+
+            const descTemplate = metaDescTemplate.value.trim();
+            const keysTemplate = metaKeysTemplate.value.trim();
+            const deployAfter = metaDeployAfter.value;
+
+            if (!descTemplate || !keysTemplate) {
+                alert("Please specify templates for both Description and Keywords.");
+                return;
+            }
+
+            if (!confirm("Are you sure you want to bulk generate and rewrite SEO meta tags for ALL pages on the site?")) {
+                return;
+            }
+
+            btnGenerateMeta.disabled = true;
+            btnGenerateMeta.innerText = "⏳ Running in Background...";
+            metaTerminal.style.display = 'block';
+            metaProgressBar.style.display = 'block';
+            metaProgressBarFill.style.width = '2%';
+            metaTerminal.innerHTML = '';
+
+            writeToMetaConsole(`[*] Sending bulk SEO job to backend...`, 'info');
+
+            try {
+                // Kick off the async job — server responds immediately
+                const response = await fetch(BACKEND_URL + "/bulk_meta", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        description_template: descTemplate,
+                        keywords_template: keysTemplate,
+                        deploy: deployAfter
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    writeToMetaConsole(`[!] Error: ${result.error}`, 'error');
+                    btnGenerateMeta.disabled = false;
+                    btnGenerateMeta.innerText = "⚡ Bulk Generate & Apply Meta Tags to All Pages";
+                    return;
+                }
+
+                writeToMetaConsole(`[✓] Backend job started! Processing pages in background...`, 'success');
+                writeToMetaConsole(`[*] Backend stays ONLINE during the entire operation.`, 'info');
+                writeToMetaConsole(`[*] Polling progress every 2 seconds...`, 'info');
+
+                // Poll /bulk_meta_status every 2 seconds for live progress
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const statusRes = await fetch(BACKEND_URL + "/bulk_meta_status", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: '{}'
+                        });
+                        const status = await statusRes.json();
+
+                        const total = status.total || 1;
+                        const updated = status.updated || 0;
+                        const pct = Math.max(2, Math.round((updated / total) * 100));
+                        metaProgressBarFill.style.width = `${pct}%`;
+                        btnGenerateMeta.innerText = `⏳ ${updated} / ${total} pages...`;
+
+                        if (updated > 0 && updated % 500 === 0) {
+                            writeToMetaConsole(`[*] Progress: ${updated} / ${total} pages updated...`, 'info');
+                        }
+
+                        if (status.done) {
+                            clearInterval(pollInterval);
+                            metaProgressBarFill.style.width = '100%';
+
+                            if (status.error) {
+                                writeToMetaConsole(`[!] Error: ${status.error}`, 'error');
+                                showToast("SEO Error", status.error);
+                            } else {
+                                writeToMetaConsole(`[✓] COMPLETE! Updated ${status.updated} pages. Failed: ${status.failed}`, 'success');
+                                if (deployAfter === "yes") {
+                                    writeToMetaConsole(`[*] FTP auto-deployment queued in background.`, 'warning');
+                                    showToast("SEO Bulk Done!", `Updated ${status.updated} pages & queued deploy!`);
+                                } else {
+                                    showToast("Local SEO Done!", `Updated ${status.updated} pages locally.`);
+                                }
+                            }
+
+                            btnGenerateMeta.disabled = false;
+                            btnGenerateMeta.innerText = "⚡ Bulk Generate & Apply Meta Tags to All Pages";
+                        }
+                    } catch (pollErr) {
+                        writeToMetaConsole(`[!] Poll error: ${pollErr.message}`, 'warning');
+                    }
+                }, 2000);
+
+            } catch (err) {
+                writeToMetaConsole(`[!] Connection error: ${err.message}`, 'error');
+                console.error(err);
+                btnGenerateMeta.disabled = false;
+                btnGenerateMeta.innerText = "⚡ Bulk Generate & Apply Meta Tags to All Pages";
+            }
+        });
+
+        // Close search results on external clicks
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
