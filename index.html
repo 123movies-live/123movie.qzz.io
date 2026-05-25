@@ -7,6 +7,7 @@
     
     <!-- SEO Meta Tags -->
     <meta name="google-site-verification" content="tmQ24EriiF2aUay-VOPs1yKG9UCEvToL40h5tB7vV3A" />
+    <meta name="google-site-verification" content="nXRA64JmSqD8RMAkaNhLxpt_qPPnPtbxyu8WtNeJ--I" />
     <meta name="description" content="Watch the latest movies online for free on 123MOVIES. Stream action, comedy, drama, and more in HD quality without registration.">
     <meta name="keywords" content="123movies, watch movies online, free movies online, stream movies, HD movies free, movie streaming">
     <link rel="canonical" href="index.html">
@@ -187,40 +188,42 @@
 
     <script src="main.js?v=2.3"></script>
 
-    <!-- Popup/Ad Focus Guard: ads open in background, this page stays active -->
+                <!-- Popup/Ad Focus Guard: ads open in background, this page stays active -->
     <script>
         (function () {
             var _origOpen = window.open;
             var _popupPending = false;
+            var lastClickTime = 0;
 
-            // Override window.open so every popup/new tab opens in background
+            document.addEventListener('click', function () {
+                lastClickTime = Date.now();
+            }, true);
+
             window.open = function (url, target, features) {
                 _popupPending = true;
-                // Force noopener so new tab can't control this page
                 var safeFeatures = (features || '') + ',noopener,noreferrer';
                 var win = _origOpen.call(window, url, '_blank', safeFeatures);
-                // Immediately steal focus back
-                setTimeout(function () {
+                if (win) {
+                    try { win.blur(); } catch (e) {}
+                }
+                var focusInterval = setInterval(function () {
                     try { window.focus(); } catch (e) {}
+                }, 50);
+                setTimeout(function () {
+                    clearInterval(focusInterval);
                     _popupPending = false;
-                }, 0);
+                }, 1000);
                 return win;
             };
 
-            // If anything blurs this window (popup trying to take over), refocus
             window.addEventListener('blur', function () {
-                if (_popupPending) {
-                    setTimeout(function () {
+                if (_popupPending || (Date.now() - lastClickTime < 2000)) {
+                    var blurFocusInterval = setInterval(function () {
                         try { window.focus(); } catch (e) {}
                     }, 50);
-                }
-            });
-
-            // Block any attempt to navigate THIS page away via popups
-            window.addEventListener('beforeunload', function (e) {
-                if (_popupPending) {
-                    e.preventDefault();
-                    e.returnValue = '';
+                    setTimeout(function () {
+                        clearInterval(blurFocusInterval);
+                    }, 1000);
                 }
             });
         })();

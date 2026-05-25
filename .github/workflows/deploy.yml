@@ -1,0 +1,30 @@
+name: 🎉 Auto-Deploy to Ezyro Host
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: 🚚 FTP Sync Job
+    runs-on: ubuntu-latest
+    steps:
+    - name: 📂 Checkout Latest Code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: 🚀 FTP Deploy Action
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ftpupload.net
+        username: ezyro_42012681
+        password: 94c91aaf2
+        server-dir: /htdocs/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/deploy.ps1
+          **/update_all_popups.py
+          **/test_ftp.py

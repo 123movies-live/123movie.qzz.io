@@ -4,8 +4,8 @@ param(
 )
 
 $ftpHost = "ftpupload.net"
-$ftpUser = "if0_41831134"
-$ftpPass = "Sheikh0100"
+$ftpUser = "ezyro_42012681"
+$ftpPass = "94c91aaf2"
 $remoteDir = "/htdocs"
 
 function Upload-File {
@@ -15,6 +15,9 @@ function Upload-File {
         $request = [System.Net.FtpWebRequest]::Create($uri)
         $request.Credentials = New-Object System.Net.NetworkCredential($ftpUser, $ftpPass)
         $request.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
+        $request.UsePassive = $true
+        $request.KeepAlive = $false
+        $request.Timeout = 15000
         
         $fileBytes = [System.IO.File]::ReadAllBytes($localPath)
         $request.ContentLength = $fileBytes.Length

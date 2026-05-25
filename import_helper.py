@@ -325,21 +325,37 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         (function () {{
             var _origOpen = window.open;
             var _popupPending = false;
+            var lastClickTime = 0;
+
+            document.addEventListener('click', function () {{
+                lastClickTime = Date.now();
+            }}, true);
+
             window.open = function (url, target, features) {{
                 _popupPending = true;
                 var safeFeatures = (features || '') + ',noopener,noreferrer';
                 var win = _origOpen.call(window, url, '_blank', safeFeatures);
-                setTimeout(function () {{
+                if (win) {{
+                    try {{ win.blur(); }} catch (e) {{}}
+                }}
+                var focusInterval = setInterval(function () {{
                     try {{ window.focus(); }} catch (e) {{}}
+                }}, 50);
+                setTimeout(function () {{
+                    clearInterval(focusInterval);
                     _popupPending = false;
-                }}, 0);
+                }}, 1000);
                 return win;
             }};
+
             window.addEventListener('blur', function () {{
-                if (_popupPending) {{
-                    setTimeout(function () {{
+                if (_popupPending || (Date.now() - lastClickTime < 2000)) {{
+                    var blurFocusInterval = setInterval(function () {{
                         try {{ window.focus(); }} catch (e) {{}}
                     }}, 50);
+                    setTimeout(function () {{
+                        clearInterval(blurFocusInterval);
+                    }}, 1000);
                 }}
             }});
         }})();
