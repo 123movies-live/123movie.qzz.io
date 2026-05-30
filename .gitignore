@@ -10,10 +10,4 @@
 plugins/
 __pycache__/
 
-# Ignore all movie HTML files by default
-*.html
 
-# Allow/whitelist only core code HTML files
-!index.html
-!admin.html
-!google3G_m1WSRYg4Q-pquNBM9dLkd_0i_ZV0AoVIHmtcuJEw.html
