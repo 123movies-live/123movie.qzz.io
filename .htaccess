@@ -1,0 +1,17 @@
+# 123MOVIES SEO & Cloudflare SSL Optimization Rules
+RewriteEngine On
+
+# 1. Force HTTPS Redirection (Perfectly compatible with Cloudflare Proxy)
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# 2. Disable Directory Browsing for Premium Security
+Options -Indexes
+
+# 3. Ensure Sitemap and Robots are served directly
+RewriteRule ^sitemap\.xml$ sitemap.xml [L]
+RewriteRule ^robots\.txt$ robots.txt [L]
+
+# 4. Custom Error Documents
+ErrorDocument 404 /index.html

@@ -4,8 +4,8 @@ param(
 )
 
 $ftpHost = "ftpupload.net"
-$ftpUser = "ezyro_42012681"
-$ftpPass = "94c91aaf2"
+$ftpUser = "ezyro_42044738"
+$ftpPass = "b1ef9e46249"
 $remoteDir = "/htdocs"
 
 function Upload-File {
@@ -71,7 +71,17 @@ $filesToUpload = @()
 
 if ($Files -and $Files.Count -gt 0) {
     Write-Host "Uploading explicitly requested files."
+    $resolvedFiles = @()
     foreach ($fileName in $Files) {
+        if ($fileName) {
+            # Split by commas or spaces to handle combined argument strings
+            $parts = $fileName -split '[\s,]+' | Where-Object { $_.Trim() -ne "" }
+            foreach ($part in $parts) {
+                $resolvedFiles += $part.Trim()
+            }
+        }
+    }
+    foreach ($fileName in $resolvedFiles) {
         $file = Get-Item -Path (Join-Path $PSScriptRoot $fileName) -ErrorAction SilentlyContinue
         if ($file) {
             $filesToUpload += $file

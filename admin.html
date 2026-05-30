@@ -770,7 +770,7 @@
 
                 <div class="form-group" style="margin-bottom: 1.5rem;">
                     <label for="sitemapDomain">Target Website Base URL</label>
-                    <input type="text" id="sitemapDomain" class="form-control" value="https://123movie.free.nf" placeholder="e.g., https://yourwebsite.com">
+                    <input type="text" id="sitemapDomain" class="form-control" value="https://123movie.qzz.io" placeholder="e.g., https://yourwebsite.com">
                     <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 5px; line-height: 1.4;">
                         * Specify your live production URL (e.g. <code>https://yourdomain.com</code>) to generate proper canonical absolute paths inside the XML document.
                     </p>
@@ -803,7 +803,7 @@
                     <h4 style="color: #2ecc71; margin-bottom: 5px;">🚀 Sitemap Deployed Successfully!</h4>
                     <p>Your sitemap XML is now live at:</p>
                     <p style="margin-top: 5px; font-weight: bold;">
-                        <a id="sitemapLiveLink" href="https://123movie.free.nf/sitemap.xml" target="_blank" style="color: #2ecc71; text-decoration: underline; font-size: 1.05rem;">https://123movie.free.nf/sitemap.xml</a>
+                        <a id="sitemapLiveLink" href="https://123movie.qzz.io/sitemap.xml" target="_blank" style="color: #2ecc71; text-decoration: underline; font-size: 1.05rem;">https://123movie.qzz.io/sitemap.xml</a>
                     </p>
                 </div>
 
@@ -1197,7 +1197,7 @@
     <meta name="description" content="Watch ${title} (${year}) full movie online in HD. ${overview}">
     <meta name="keywords" content="${title} ${year}, watch ${title} online, movie streaming, free movies, 123movies">
     <link rel="canonical" href="${slug}.html">
-    <link rel="stylesheet" href="style.css?v=2.3">
+    <link rel="stylesheet" href="style.css?v=3.0">
     <style>
         #adblockOverlay {
             position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important;
@@ -1294,7 +1294,7 @@
             document.getElementById('refreshBtn').addEventListener('click', () => window.location.reload());
         });
     <\/script>
-    <script src="main.js?v=2.3"><\/script>
+    <script src="main.js?v=3.0"><\/script>
 </body>
 </html>`;
 
@@ -1620,7 +1620,7 @@
             const priority = sitemapPriority.value;
 
             if (!domain) {
-                alert("Please enter a valid website domain URL (e.g. https://123movie.free.nf).");
+                alert("Please enter a valid website domain URL (e.g. https://123movie.qzz.io).");
                 return;
             }
 

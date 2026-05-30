@@ -46,7 +46,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <meta name="keywords" content="{title} {year}, watch {title} online, movie streaming, free movies, 123movies">
     <link rel="canonical" href="{slug}.html">
 
-    <link rel="stylesheet" href="style.css?v=2.3">
+    <link rel="stylesheet" href="style.css?v=3.0">
     <style>
         /* Premium AdBlock UI */
         #adblockOverlay {{
@@ -318,7 +318,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             document.getElementById('refreshBtn').addEventListener('click', () => window.location.reload());
         }});
     </script>
-    <script src="main.js?v=2.3"></script>
+    <script src="main.js?v=3.0"></script>
 
     <!-- Popup/Ad Focus Guard: ads open in background, this page stays active -->
     <script>
@@ -411,7 +411,9 @@ def deploy_worker():
                 print(f"[*] Files: {files_to_upload}")
                 print("="*50)
                 
-                cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-File", "deploy.ps1", "-Files"] + files_to_upload
+                # Join files into a single space-separated string so our robust deploy.ps1 split parser handles them perfectly
+                files_arg = " ".join(files_to_upload)
+                cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-File", "deploy.ps1", "-Files", files_arg]
                 result = subprocess.run(
                     cmd,
                     capture_output=True,
@@ -421,8 +423,12 @@ def deploy_worker():
                 
                 if result.returncode == 0:
                     print("[*] AUTO-DEPLOYMENT COMPLETED SUCCESSFULLY!")
+                    if result.stdout:
+                        print(result.stdout.strip())
                 else:
                     print(f"[!] AUTO-DEPLOYMENT FAILED (code {result.returncode}):\n{result.stderr}")
+                    if result.stdout:
+                        print(result.stdout.strip())
                 print("="*50 + "\n")
             except subprocess.TimeoutExpired:
                 print("[!] AUTO-DEPLOYMENT HUNG AND WAS KILLED (Timeout expired after 120s)")
@@ -557,12 +563,12 @@ class RequestHandler(BaseHTTPRequestHandler):
             
             try:
                 data = json.loads(post_data.decode('utf-8'))
-                domain = data.get('domain', 'https://123movie.free.nf').rstrip('/')
+                domain = data.get('domain', 'https://123movie.qzz.io').rstrip('/')
                 frequency = data.get('frequency', 'weekly')
                 priority = data.get('priority', '0.8')
                 
-                main_js_path = "main.js"
-                slugs = []
+                import datetime
+                today_str = datetime.date.today().isoformat()
                 
                 if os.path.exists(main_js_path):
                     with open(main_js_path, "r", encoding="utf-8") as f:
@@ -570,12 +576,19 @@ class RequestHandler(BaseHTTPRequestHandler):
                     
                     url_regex = r'url:\s*"([^"]+)"'
                     slugs = re.findall(url_regex, main_js_content)
+                    slugs = list(dict.fromkeys(slugs)) # deduplicate
                 
                 xml_entries = []
-                # Homepage
+                # Homepage (canonical)
+                homepage_lastmod = today_str
+                if os.path.exists("index.html"):
+                    mtime = os.path.getmtime("index.html")
+                    homepage_lastmod = datetime.date.fromtimestamp(mtime).isoformat()
+                    
                 xml_entries.append(f"""  <url>
-    <loc>{domain}/index.html</loc>
-    <changefreq>{frequency}</changefreq>
+    <loc>{domain}/</loc>
+    <lastmod>{homepage_lastmod}</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>""")
                 
@@ -583,8 +596,15 @@ class RequestHandler(BaseHTTPRequestHandler):
                 for slug in slugs:
                     if slug == "index.html" or slug == "admin.html":
                         continue
+                    
+                    lastmod = today_str
+                    if os.path.exists(slug):
+                        mtime = os.path.getmtime(slug)
+                        lastmod = datetime.date.fromtimestamp(mtime).isoformat()
+                        
                     xml_entries.append(f"""  <url>
     <loc>{domain}/{slug}</loc>
+    <lastmod>{lastmod}</lastmod>
     <changefreq>{frequency}</changefreq>
     <priority>{priority}</priority>
   </url>""")

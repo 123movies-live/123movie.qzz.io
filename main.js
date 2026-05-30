@@ -42032,6 +42032,13 @@ const MOVIE_DATABASE = [
         image: "https://image.tmdb.org/t/p/w500/rBka0nFWiHxabHRLr0KfIA8Yiaq.jpg",
         category: "Crime - Drama - Thriller - 1955"
     }
+    ,
+    {
+        title: "Kamen Rider J",
+        url: "kamen-rider-j.html",
+        image: "https://image.tmdb.org/t/p/w500/eigCNQq0EI9ojtdBzbpmvuoFugW.jpg",
+        category: "Action - Adventure - Science Fiction - 1994"
+    }
     /* DB_END */
 ];
 
