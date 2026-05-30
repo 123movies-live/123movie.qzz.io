@@ -652,8 +652,16 @@
             <div id="singleImporterTab" class="tab-content active">
                 <h2 class="panel-title">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    Search & Import Movies
+                    Search & Import Movies / TV Series
                 </h2>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="importType">Content Type</label>
+                    <select id="importType" class="form-control" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); outline: none; padding: 0.9rem 1.2rem; cursor: pointer;">
+                        <option value="movie" selected style="background: #151515; color: #fff;">🎬 Movie</option>
+                        <option value="tv" style="background: #151515; color: #fff;">📺 TV Series</option>
+                    </select>
+                </div>
 
                 <div class="form-group" style="position: relative;">
                     <label for="movieSearch">Search Movie Title (TMDB)</label>
@@ -936,6 +944,11 @@
         const formCategory = document.getElementById('movieCategory');
         const formOverview = document.getElementById('movieOverview');
         const formApiKey = document.getElementById('tmdbApiKey');
+        const importType = document.getElementById('importType');
+        
+        const searchLabel = document.querySelector('label[for="movieSearch"]');
+        const titleLabel = document.querySelector('label[for="movieTitle"]');
+        const yearLabel = document.querySelector('label[for="movieYear"]');
         
         const previewContainer = document.getElementById('previewContainer');
         const btnImportDirect = document.getElementById('btnImportDirect');
@@ -945,6 +958,27 @@
         const backendStatus = document.getElementById('backendStatus');
         const statusText = document.getElementById('statusText');
         const setupGuide = document.getElementById('setupGuide');
+
+        // Toggle UI text based on import type
+        if (importType) {
+            importType.addEventListener('change', () => {
+                const isTv = importType.value === 'tv';
+                if (isTv) {
+                    if (searchLabel) searchLabel.innerText = "Search TV Series Title (TMDB)";
+                    if (searchInput) searchInput.placeholder = "Type a TV series title (e.g., Breaking Bad, Stranger Things)...";
+                    if (titleLabel) titleLabel.innerText = "TV Series Title";
+                    if (yearLabel) yearLabel.innerText = "First Air Year";
+                } else {
+                    if (searchLabel) searchLabel.innerText = "Search Movie Title (TMDB)";
+                    if (searchInput) searchInput.placeholder = "Type a movie title (e.g., Inception, Interstellar)...";
+                    if (titleLabel) titleLabel.innerText = "Movie Title";
+                    if (yearLabel) yearLabel.innerText = "Release Year";
+                }
+                // Clear existing search results
+                searchResults.innerHTML = '';
+                searchResults.classList.remove('active');
+            });
+        }
 
         let selectedMovieData = null;
         let isBackendOnline = false;
@@ -1003,7 +1037,9 @@
 
         const fetchTMDBMovies = async (query) => {
             const apiKey = formApiKey.value.trim() || TMDB_DEFAULT_KEY;
-            const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}&include_adult=false&language=en-US`;
+            const isTv = importType ? importType.value === 'tv' : false;
+            const endpoint = isTv ? 'search/tv' : 'search/movie';
+            const url = `https://api.themoviedb.org/3/${endpoint}?api_key=${apiKey}&query=${encodeURIComponent(query)}&include_adult=false&language=en-US`;
             
             try {
                 const response = await fetch(url);
@@ -1017,8 +1053,9 @@
         const renderSearchResults = (movies) => {
             searchResults.innerHTML = '';
             
+            const isTv = importType ? importType.value === 'tv' : false;
             if (movies.length === 0) {
-                searchResults.innerHTML = `<div class="result-item" style="cursor:default;"><span class="result-title">No movies found on TMDB</span></div>`;
+                searchResults.innerHTML = `<div class="result-item" style="cursor:default;"><span class="result-title">No ${isTv ? 'TV Series' : 'movies'} found on TMDB</span></div>`;
                 searchResults.classList.add('active');
                 return;
             }
@@ -1027,13 +1064,17 @@
                 const item = document.createElement('div');
                 item.className = 'result-item';
                 const poster = movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : 'assets/cover-placeholder.jpg';
-                const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+                
+                const title = isTv ? (movie.name || movie.original_name) : (movie.title || movie.original_title);
+                const year = isTv 
+                    ? (movie.first_air_date ? movie.first_air_date.split('-')[0] : 'N/A')
+                    : (movie.release_date ? movie.release_date.split('-')[0] : 'N/A');
                 
                 item.innerHTML = `
-                    <img src="${poster}" alt="${movie.title}">
+                    <img src="${poster}" alt="${title}">
                     <div class="result-info">
-                        <span class="result-title">${movie.title}</span>
-                        <span class="result-meta">Movie • ${year}</span>
+                        <span class="result-title">${title}</span>
+                        <span class="result-meta">${isTv ? 'TV Series' : 'Movie'} • ${year}</span>
                     </div>
                 `;
 
@@ -1051,7 +1092,9 @@
             searchInput.value = '';
 
             const apiKey = formApiKey.value.trim() || TMDB_DEFAULT_KEY;
-            const detailUrl = `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${apiKey}&language=en-US`;
+            const isTv = importType ? importType.value === 'tv' : false;
+            const endpoint = isTv ? 'tv' : 'movie';
+            const detailUrl = `https://api.themoviedb.org/3/${endpoint}/${movie.id}?api_key=${apiKey}&language=en-US`;
 
             try {
                 const response = await fetch(detailUrl);
@@ -1070,18 +1113,21 @@
             if (!movie) return;
             selectedMovieData = movie;
             
-            const releaseDate = movie.release_date || "";
+            const isTv = importType ? importType.value === 'tv' : false;
+            const releaseDate = isTv ? (movie.first_air_date || "") : (movie.release_date || "");
             const year = (releaseDate && typeof releaseDate === 'string') 
                 ? releaseDate.split('-')[0] 
                 : new Date().getFullYear();
             
             // Format Categories: Action, Drama etc
-            let categories = 'Movie';
+            let categories = isTv ? 'TV Series' : 'Movie';
             if (movie.genres && movie.genres.length > 0) {
                 categories = movie.genres.map(g => g.name).slice(0, 3).join(' - ');
             }
             
-            const title = movie.title || movie.original_title || "Untitled Movie";
+            const title = isTv 
+                ? (movie.name || movie.original_name || "Untitled TV Show")
+                : (movie.title || movie.original_title || "Untitled Movie");
             
             // Generate clean URL slug (e.g. John Wick: Chapter 4 -> john-wick-chapter-4)
             const slug = title.toLowerCase()
@@ -1093,8 +1139,10 @@
             formYear.value = year;
             formID.value = movie.id || "";
             formSlug.value = slug;
-            formCategory.value = `${categories} - ${year}`;
-            formOverview.value = movie.overview || "Watch full movie in HD quality online. Stream now without any registration.";
+            formCategory.value = isTv ? `${categories} - TV Series - ${year}` : `${categories} - ${year}`;
+            formOverview.value = movie.overview || (isTv
+                ? "Watch full episodes online in HD quality. Stream now without any registration."
+                : "Watch full movie in HD quality online. Stream now without any registration.");
 
             updatePreviewAndSnippet();
         };
@@ -1144,14 +1192,28 @@
         btnImportDirect.addEventListener('click', async () => {
             if (!selectedMovieData) return;
 
+            const isTv = importType ? importType.value === 'tv' : false;
+            let seasonsData = [];
+            if (isTv && selectedMovieData && selectedMovieData.seasons) {
+                seasonsData = selectedMovieData.seasons.map(s => ({
+                    season_number: s.season_number,
+                    episode_count: s.episode_count
+                }));
+            }
+            if (isTv && seasonsData.length === 0) {
+                seasonsData = [{ season_number: 1, episode_count: 10 }];
+            }
+
             const payload = {
+                type: isTv ? 'tv' : 'movie',
                 title: formTitle.value.trim(),
                 year: formYear.value.trim(),
                 overview: formOverview.value.trim(),
                 tmdb_id: formID.value.trim(),
                 poster_path: selectedMovieData.poster_path,
                 category: formCategory.value.trim(),
-                slug: formSlug.value.trim()
+                slug: formSlug.value.trim(),
+                seasons_data: seasonsData
             };
 
             btnImportDirect.disabled = true;
