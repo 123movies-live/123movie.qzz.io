@@ -44,7 +44,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <!-- SEO Meta Tags -->
     <meta name="description" content="Watch {title} ({year}) full movie online in HD. {overview}">
     <meta name="keywords" content="{title} {year}, watch {title} online, movie streaming, free movies, 123movies">
-    <link rel="canonical" href="{slug}.html">
+    <link rel="canonical" href="https://123movie.qzz.io/{slug}.html">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {{
+        "@context": "https://schema.org",
+        "@type": "Movie",
+        "name": "{title}",
+        "dateCreated": "{year}",
+        "description": "{overview}",
+        "image": "{image_url}",
+        "url": "https://123movie.qzz.io/{slug}.html"
+    }}
+    </script>
 
     <link rel="stylesheet" href="style.css?v=3.0">
     <style>
@@ -375,7 +388,20 @@ TV_TEMPLATE = """<!DOCTYPE html>
     <!-- SEO Meta Tags -->
     <meta name="description" content="Watch {title} ({year}) TV series full episodes online in HD. {overview}">
     <meta name="keywords" content="{title} {year}, watch {title} online, TV show streaming, free TV episodes, 123movies">
-    <link rel="canonical" href="{slug}.html">
+    <link rel="canonical" href="https://123movie.qzz.io/{slug}.html">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {{
+        "@context": "https://schema.org",
+        "@type": "TVSeries",
+        "name": "{title}",
+        "dateCreated": "{year}",
+        "description": "{overview}",
+        "image": "{image_url}",
+        "url": "https://123movie.qzz.io/{slug}.html"
+    }}
+    </script>
 
     <link rel="stylesheet" href="style.css?v=3.1">
     <style>
@@ -964,6 +990,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                         overview=html_overview,
                         tmdb_id=tmdb_id,
                         slug=slug,
+                        image_url=image_url,
                         seasons_data=json.dumps(seasons_data)
                     )
                     print(f"Generating TV series file with {len(seasons_data)} seasons...")
@@ -973,7 +1000,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                         year=year,
                         overview=html_overview,
                         tmdb_id=tmdb_id,
-                        slug=slug
+                        slug=slug,
+                        image_url=image_url
                     )
                 
                 html_filename = f"{slug}.html"

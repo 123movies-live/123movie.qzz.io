@@ -42039,6 +42039,20 @@ const MOVIE_DATABASE = [
         image: "https://image.tmdb.org/t/p/w500/eigCNQq0EI9ojtdBzbpmvuoFugW.jpg",
         category: "Action - Adventure - Science Fiction - 1994"
     }
+    ,
+    {
+        title: "Devdas",
+        url: "devdas.html",
+        image: "https://image.tmdb.org/t/p/w500/dUBFi7bnLRfm4WaTh4ZoF2tbBJj.jpg",
+        category: "Drama - Romance - 2002"
+    }
+    ,
+    {
+        title: "Reacher",
+        url: "reacher.html",
+        image: "https://image.tmdb.org/t/p/w500/31GlRQMiDunO8cl3NxTz34U64rf.jpg",
+        category: "Action & Adventure - Drama - Crime - TV Series - 2022"
+    }
     /* DB_END */
 ];
 

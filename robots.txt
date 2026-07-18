@@ -1,4 +1,10 @@
 User-agent: *
 Allow: /
+Disallow: /admin.html
+Disallow: /import_helper.py
+Disallow: /deploy.ps1
+Disallow: /update_all_popups.py
+Disallow: /test_ftp.py
+Disallow: /main.js
 
 Sitemap: https://123movie.qzz.io/sitemap.xml
