@@ -1067,6 +1067,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 import datetime
                 today_str = datetime.date.today().isoformat()
                 
+                main_js_path = "main.js"
                 if os.path.exists(main_js_path):
                     with open(main_js_path, "r", encoding="utf-8") as f:
                         main_js_content = f.read()
@@ -1106,25 +1107,58 @@ class RequestHandler(BaseHTTPRequestHandler):
     <priority>{priority}</priority>
   </url>""")
                 
-                entries_str = "\n".join(xml_entries)
-                xml_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+                import math
+                batch_size = 1000
+                total_entries = len(xml_entries)
+                num_sitemaps = math.ceil(total_entries / batch_size)
+                
+                sitemap_files = []
+                for i in range(num_sitemaps):
+                    start = i * batch_size
+                    end = min(start + batch_size, total_entries)
+                    batch_entries = xml_entries[start:end]
+                    
+                    batch_str = "\n".join(batch_entries)
+                    xml_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-{entries_str}
+{batch_str}
 </urlset>"""
+                    
+                    sub_filename = f"sitemap_{i+1}.xml"
+                    with open(sub_filename, "w", encoding="utf-8") as f:
+                        f.write(xml_content)
+                    print(f"Generated sub-sitemap: {sub_filename} with {len(batch_entries)} URLs")
+                    sitemap_files.append(sub_filename)
+                
+                # Now generate sitemap index file sitemap.xml
+                index_entries = []
+                for sub_file in sitemap_files:
+                    index_entries.append(f"""  <sitemap>
+    <loc>{domain}/{sub_file}</loc>
+    <lastmod>{today_str}</lastmod>
+  </sitemap>""")
+                
+                index_str = "\n".join(index_entries)
+                index_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{index_str}
+</sitemapindex>"""
                 
                 sitemap_filename = "sitemap.xml"
                 with open(sitemap_filename, "w", encoding="utf-8") as f:
-                    f.write(xml_content)
+                    f.write(index_content)
                 
-                print(f"Generated sitemap: {sitemap_filename} containing {len(xml_entries)} URLs!")
+                print(f"Generated sitemap index: {sitemap_filename} containing {len(sitemap_files)} sub-sitemaps!")
                 
                 self.send_success_response({
                     "success": True,
-                    "urls_count": len(xml_entries),
+                    "urls_count": total_entries,
+                    "sitemaps_count": len(sitemap_files),
                     "filename": sitemap_filename
                 })
                 
-                trigger_auto_deploy([sitemap_filename])
+                deploy_files = [sitemap_filename] + sitemap_files
+                trigger_auto_deploy(deploy_files)
                 
             except Exception as e:
                 self.send_error_response(f"Server Error during sitemap generation: {str(e)}")
